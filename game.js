@@ -118,6 +118,39 @@ class Asteroid {
   }
 }
 
+// ── Estrella fugaz ────────────────────────────────────────────────────────────
+class ShootingStar extends Asteroid {
+  constructor(x, y) {
+    super(x, y, 1);
+    this.ttl = rand(4, 6);
+
+    const angle = rand(0, Math.PI * 2);
+    const speed = rand(180, 260);
+    this.vx = Math.cos(angle) * speed;
+    this.vy = Math.sin(angle) * speed;
+  }
+
+  update(dt) {
+    super.update(dt);
+    this.ttl -= dt;
+    if (this.ttl <= 0) this.dead = true;
+  }
+
+  split() {
+    return [];
+  }
+
+  draw() {
+    ctx.strokeStyle = 'rgba(255, 209, 102, 0.8)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(this.x - this.vx * 0.12, this.y - this.vy * 0.12);
+    ctx.stroke();
+    super.draw();
+  }
+}
+
 // ── Ship ──────────────────────────────────────────────────────────────────────
 class Ship {
   constructor() { this.reset(); }
@@ -268,6 +301,7 @@ let score, lives, level;
 let state;      // 'playing' | 'dead' | 'gameover'
 let deadTimer;
 let speedPowerUp, powerUpTimer;
+let shootingStarTimer;
 
 function resetPowerUp() {
   speedPowerUp = null;
@@ -288,6 +322,25 @@ function updatePowerUp(dt) {
     const margin = 30;
     speedPowerUp = new SpeedPowerUp(rand(margin, W - margin), rand(margin, H - margin));
   }
+}
+
+function resetShootingStar() {
+  shootingStarTimer = rand(8, 16);
+}
+
+function updateShootingStar(dt) {
+  if (asteroids.some(a => a instanceof ShootingStar)) return;
+
+  shootingStarTimer -= dt;
+  if (shootingStarTimer > 0) return;
+
+  let x, y;
+  do {
+    x = rand(0, W);
+    y = rand(0, H);
+  } while (Math.hypot(x - ship.x, y - ship.y) < 150);
+  asteroids.push(new ShootingStar(x, y));
+  resetShootingStar();
 }
 
 function spawnAsteroids(count) {
@@ -312,6 +365,7 @@ function initGame() {
   level  = 1;
   state  = 'playing';
   resetPowerUp();
+  resetShootingStar();
   spawnAsteroids(4);
 }
 
@@ -367,6 +421,7 @@ function update(dt) {
 
   ship.update(dt);
   updatePowerUp(dt);
+  updateShootingStar(dt);
   bullets.forEach(b => b.update(dt));
   asteroids.forEach(a => a.update(dt));
   particles.forEach(p => p.update(dt));
@@ -400,8 +455,8 @@ function update(dt) {
     }
   }
 
-  // Nivel completado
-  if (asteroids.length === 0) nextLevel();
+  // Nivel completado (las estrellas fugaces no bloquean el avance)
+  if (!asteroids.some(a => !(a instanceof ShootingStar))) nextLevel();
 }
 
 // ── Draw ──────────────────────────────────────────────────────────────────────

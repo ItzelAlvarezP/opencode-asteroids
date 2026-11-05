@@ -32,6 +32,8 @@ Luego visita `http://localhost:3000`.
 
 El power-up **Velocidad** (círculo celeste con «V») aparece aleatoriamente. Recógelo con la nave para duplicar la propulsión durante 5 segundos; el tiempo restante se muestra en pantalla.
 
+La **estrella fugaz** es un asteroide especial más rápido que lo normal, con un rastro dorado. Desaparece tras unos segundos si no la destruyes.
+
 ## Puntuación
 
 | Asteroide | Puntos |
@@ -39,6 +41,7 @@ El power-up **Velocidad** (círculo celeste con «V») aparece aleatoriamente. R
 | Grande    | 20     |
 | Mediano   | 50     |
 | Pequeño   | 100    |
+| Estrella fugaz | 100 |
 
 ## Características
 

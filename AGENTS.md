@@ -26,6 +26,7 @@ npx serve .
 - Frame delta is capped at `0.05s` in `loop()`; keep physics in units per second (`dt`-based), not per frame.
 - UI text is in Spanish (`NIVEL`, `PUNTAJE`, etc.); identifiers and comments follow the repo convention: English code, Spanish comments when they add value.
 
-## README is partially aspirational
+## Special entities
 
-`README.md` claims special asteroid types (e.g. "estrella fugaz"), but `game.js` implements none of them. Trust `game.js` over the README for actual behavior.
+- `SpeedPowerUp` spawns on a timer and grants `ship.speedBoost` for 5s (doubles thrust only, not current velocity).
+- `ShootingStar` extends `Asteroid` with a short `ttl`. It lives in the same `asteroids` array, but level completion ignores it, so it never blocks `nextLevel()`.
