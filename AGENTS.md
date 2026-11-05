@@ -28,4 +28,4 @@ npx serve .
 
 ## README is partially aspirational
 
-`README.md` claims power-ups and special asteroid types (e.g. "estrella fugaz"), but `game.js` implements none of them. Trust `game.js` over the README for actual behavior.
+`README.md` claims special asteroid types (e.g. "estrella fugaz"), but `game.js` implements none of them. Trust `game.js` over the README for actual behavior.

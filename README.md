@@ -30,6 +30,8 @@ Luego visita `http://localhost:3000`.
 | `↑`       | Propulsar  |
 | `Espacio` | Disparar   |
 
+El power-up **Velocidad** (círculo celeste con «V») aparece aleatoriamente. Recógelo con la nave para duplicar la propulsión durante 5 segundos; el tiempo restante se muestra en pantalla.
+
 ## Puntuación
 
 | Asteroide | Puntos |
