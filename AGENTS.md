@@ -28,7 +28,8 @@ npx serve .
 
 ## Special entities
 
-- Power-ups share the `PowerUp` base class and spawn on a timer; only one is active at a time. `SpeedPowerUp` grants `ship.speedBoost` for 5s (doubles thrust only, not current velocity). `ShieldPowerUp` grants `ship.shield` for 6s.
+- Power-ups share the `PowerUp` base class (with `apply(ship)`) and spawn on a timer; only one is active at a time, picked from `POWER_UP_TYPES`. `SpeedPowerUp` grants `ship.speedBoost` for 5s (doubles thrust only, not current velocity). `ShieldPowerUp` grants `ship.shield` for 6s. `TripleShotPowerUp` grants `ship.tripleShot` for 5s, making `tryShoot()` fire three parallel bullets.
 - `ship.shield` only blocks `EnemyBullet` impacts; asteroids still destroy the ship. The shield ring is drawn in `Ship.drawShield()`.
 - `Enemy` is an OVNI that drifts, wraps around the world, and fires `EnemyBullet`s aimed at the ship via the shortest toroidal path.
+- `SHIP_SKINS` + `skinIndex` define the ship appearances; `C` cycles them and `traceHull()` draws the active hull.
 - `ShootingStar` extends `Asteroid` with a short `ttl`. It lives in the same `asteroids` array, but level completion ignores it, so it never blocks `nextLevel()`.

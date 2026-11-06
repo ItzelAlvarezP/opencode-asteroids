@@ -78,6 +78,7 @@ const POINTS = [0, 100, 50, 20];  // puntos por tamaño
 const ENEMY_POINTS = 150;         // puntos por destruir un OVNI
 const SHIELD_RADIUS   = 22;       // radio del anillo y de la hitbox del escudo
 const SHIELD_DURATION = 6;        // segundos de protección
+const TRIPLE_SHOT_DURATION = 5;   // segundos de triple disparo
 
 class Asteroid {
   constructor(x, y, size = 3) {
@@ -250,6 +251,7 @@ class Ship {
     this.shootCooldown = 0;
     this.speedBoost = 0;
     this.shield     = 0;
+    this.tripleShot = 0;
     this.dead          = false;
   }
 
@@ -259,6 +261,7 @@ class Ship {
     if (this.shootCooldown > 0) this.shootCooldown -= dt;
     if (this.speedBoost > 0) this.speedBoost = Math.max(0, this.speedBoost - dt);
     if (this.shield     > 0) this.shield     = Math.max(0, this.shield     - dt);
+    if (this.tripleShot > 0) this.tripleShot = Math.max(0, this.tripleShot - dt);
 
     const ROT   = 3.5;   // rad/s
     const THRUST = 260;  // px/s²
@@ -286,7 +289,13 @@ class Ship {
     const NOSE = 21;
     const ox = this.x + Math.cos(this.angle) * NOSE;
     const oy = this.y + Math.sin(this.angle) * NOSE;
-    return [new Bullet(ox, oy, this.angle)];
+    if (this.tripleShot <= 0) return [new Bullet(ox, oy, this.angle)];
+
+    // Tres balas paralelas, separadas en perpendicular al rumbo
+    const SPACING = 8;
+    const px = Math.cos(this.angle + Math.PI / 2) * SPACING;
+    const py = Math.sin(this.angle + Math.PI / 2) * SPACING;
+    return [-1, 0, 1].map(i => new Bullet(ox + px * i, oy + py * i, this.angle));
   }
 
   draw() {
@@ -412,6 +421,18 @@ class ShieldPowerUp extends PowerUp {
   }
 }
 
+class TripleShotPowerUp extends PowerUp {
+  constructor(x, y) {
+    super(x, y, '#ffd166', 'T');
+  }
+
+  apply(ship) {
+    ship.tripleShot = TRIPLE_SHOT_DURATION;
+  }
+}
+
+const POWER_UP_TYPES = [SpeedPowerUp, ShieldPowerUp, TripleShotPowerUp];
+
 // ── Estado del juego ──────────────────────────────────────────────────────────
 let ship, bullets, asteroids, particles;
 let score, lives, level;
@@ -438,7 +459,7 @@ function updatePowerUp(dt) {
   powerUpTimer -= dt;
   if (powerUpTimer <= 0) {
     const margin = 30;
-    const Type = Math.random() < 0.5 ? SpeedPowerUp : ShieldPowerUp;
+    const Type = POWER_UP_TYPES[randInt(0, POWER_UP_TYPES.length - 1)];
     powerUp = new Type(rand(margin, W - margin), rand(margin, H - margin));
   }
 }
@@ -536,6 +557,7 @@ function killShip() {
   ship.dead = true;
   ship.speedBoost = 0;
   ship.shield = 0;
+  ship.tripleShot = 0;
   enemyBullets = [];
   resetPowerUp();
   lives--;
@@ -682,6 +704,13 @@ function drawHUD() {
     ctx.fillStyle = '#7cff6b';
     ctx.textAlign = 'left';
     ctx.fillText(`ESCUDO  ${ship.shield.toFixed(1)}s`, 14, statusY);
+    statusY += 24;
+  }
+
+  if (ship.tripleShot > 0) {
+    ctx.fillStyle = '#ffd166';
+    ctx.textAlign = 'left';
+    ctx.fillText(`TRIPLE DISPARO  ${ship.tripleShot.toFixed(1)}s`, 14, statusY);
   }
 
   ctx.fillStyle = 'rgba(255,255,255,0.5)';

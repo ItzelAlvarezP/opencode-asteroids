@@ -35,6 +35,10 @@ El power-up **Velocidad** (círculo celeste con «V») aparece aleatoriamente. R
 
 El power-up **Escudo** (círculo verde con «E») otorga 6 segundos de protección: los proyectiles del OVNI se destruyen al impactar contra el anillo de la nave. El escudo no protege de los asteroides.
 
+El power-up **Triple disparo** (círculo dorado con «T») dispara tres balas paralelas durante 5 segundos.
+
+Solo aparece un power-up a la vez, elegido al azar entre velocidad, escudo y triple disparo.
+
 El **OVNI enemigo** aparece periódicamente y dispara proyectiles rojos apuntando a la nave. Puedes destruirlo con tus disparos para sumar puntos.
 
 La **estrella fugaz** es un asteroide especial más rápido que lo normal, con un rastro dorado. Desaparece tras unos segundos si no la destruyes.
@@ -53,7 +57,7 @@ La **estrella fugaz** es un asteroide especial más rápido que lo normal, con u
 
 - 3 vidas con invencibilidad temporal al reaparecer (parpadeo)
 - Asteroides se parten en fragmentos más pequeños al ser destruidos
-- Power-ups de velocidad y escudo temporal
+- Power-ups de velocidad, escudo y triple disparo temporales
 - OVNI enemigo que dispara proyectiles apuntando a la nave
 - Partículas de explosión al destruir asteroides
 - 4 apariencias de nave intercambiables con `C`
