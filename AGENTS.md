@@ -22,11 +22,13 @@ npx serve .
 
 - Canvas size is hardcoded twice: `width`/`height` in `index.html` and `W`/`H` in `game.js`. Change both together.
 - World is toroidal: movement must use `wrap()` from `game.js` so entities reappear on the opposite edge.
-- Game state is a string state machine: `playing` | `dead` | `gameover` (see `update()`); level completion is triggered when `asteroids.length === 0`.
+- Game state is a string state machine: `playing` | `dead` | `gameover` (see `update()`); level completion is triggered when no non-`ShootingStar` asteroid remains.
 - Frame delta is capped at `0.05s` in `loop()`; keep physics in units per second (`dt`-based), not per frame.
 - UI text is in Spanish (`NIVEL`, `PUNTAJE`, etc.); identifiers and comments follow the repo convention: English code, Spanish comments when they add value.
 
 ## Special entities
 
-- `SpeedPowerUp` spawns on a timer and grants `ship.speedBoost` for 5s (doubles thrust only, not current velocity).
+- Power-ups share the `PowerUp` base class and spawn on a timer; only one is active at a time. `SpeedPowerUp` grants `ship.speedBoost` for 5s (doubles thrust only, not current velocity). `ShieldPowerUp` grants `ship.shield` for 6s.
+- `ship.shield` only blocks `EnemyBullet` impacts; asteroids still destroy the ship. The shield ring is drawn in `Ship.drawShield()`.
+- `Enemy` is an OVNI that drifts, wraps around the world, and fires `EnemyBullet`s aimed at the ship via the shortest toroidal path.
 - `ShootingStar` extends `Asteroid` with a short `ttl`. It lives in the same `asteroids` array, but level completion ignores it, so it never blocks `nextLevel()`.
