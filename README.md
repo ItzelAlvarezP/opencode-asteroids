@@ -24,11 +24,12 @@ Luego visita `http://localhost:3000`.
 
 ## Controles
 
-| Tecla     | Acción     |
-| --------- | ---------- |
-| `←` `→`   | Rotar nave |
-| `↑`       | Propulsar  |
-| `Espacio` | Disparar   |
+| Tecla     | Acción               |
+| --------- | -------------------- |
+| `←` `→`   | Rotar nave           |
+| `↑`       | Propulsar            |
+| `Espacio` | Disparar             |
+| `C`       | Cambiar apariencia   |
 
 El power-up **Velocidad** (círculo celeste con «V») aparece aleatoriamente. Recógelo con la nave para duplicar la propulsión durante 5 segundos; el tiempo restante se muestra en pantalla.
 
@@ -48,3 +49,4 @@ La **estrella fugaz** es un asteroide especial más rápido que lo normal, con u
 - 3 vidas con invencibilidad temporal al reaparecer (parpadeo)
 - Asteroides se parten en fragmentos más pequeños al ser destruidos
 - Partículas de explosión al destruir asteroides
+- 4 apariencias de nave intercambiables con `C`
