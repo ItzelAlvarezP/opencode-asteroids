@@ -166,6 +166,7 @@ class Ship {
     this.invincible    = 3;
     this.shootCooldown = 0;
     this.speedBoost = 0;
+    this.tripleShot = 0;
     this.dead          = false;
   }
 
@@ -174,6 +175,7 @@ class Ship {
     if (this.invincible    > 0) this.invincible    -= dt;
     if (this.shootCooldown > 0) this.shootCooldown -= dt;
     if (this.speedBoost > 0) this.speedBoost = Math.max(0, this.speedBoost - dt);
+    if (this.tripleShot > 0) this.tripleShot = Math.max(0, this.tripleShot - dt);
 
     const ROT   = 3.5;   // rad/s
     const THRUST = 260;  // px/s²
@@ -201,7 +203,13 @@ class Ship {
     const NOSE = 21;
     const ox = this.x + Math.cos(this.angle) * NOSE;
     const oy = this.y + Math.sin(this.angle) * NOSE;
-    return [new Bullet(ox, oy, this.angle)];
+    if (this.tripleShot <= 0) return [new Bullet(ox, oy, this.angle)];
+
+    // Tres balas paralelas, separadas en perpendicular al rumbo
+    const SPACING = 8;
+    const px = Math.cos(this.angle + Math.PI / 2) * SPACING;
+    const py = Math.sin(this.angle + Math.PI / 2) * SPACING;
+    return [-1, 0, 1].map(i => new Bullet(ox + px * i, oy + py * i, this.angle));
   }
 
   draw() {
@@ -271,28 +279,38 @@ class Particle {
   }
 }
 
-class SpeedPowerUp {
-  constructor(x, y) {
+class PowerUp {
+  constructor(x, y, label, color) {
     this.x = x;
     this.y = y;
     this.radius = 12;
+    this.label = label;
+    this.color = color;
   }
 
   draw() {
     ctx.save();
     ctx.translate(this.x, this.y);
-    ctx.strokeStyle = '#00e5ff';
+    ctx.strokeStyle = this.color;
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
     ctx.stroke();
-    ctx.fillStyle = '#00e5ff';
+    ctx.fillStyle = this.color;
     ctx.font = 'bold 16px monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('V', 0, 1);
+    ctx.fillText(this.label, 0, 1);
     ctx.restore();
   }
+}
+
+class SpeedPowerUp extends PowerUp {
+  constructor(x, y) { super(x, y, 'V', '#00e5ff'); }
+}
+
+class TripleShotPowerUp extends PowerUp {
+  constructor(x, y) { super(x, y, 'T', '#ffd166'); }
 }
 
 // ── Estado del juego ──────────────────────────────────────────────────────────
@@ -300,28 +318,54 @@ let ship, bullets, asteroids, particles;
 let score, lives, level;
 let state;      // 'playing' | 'dead' | 'gameover'
 let deadTimer;
-let speedPowerUp, powerUpTimer;
+let speedPowerUp, speedPowerUpTimer;
+let tripleShotPowerUp, tripleShotPowerUpTimer;
 let shootingStarTimer;
 
-function resetPowerUp() {
-  speedPowerUp = null;
-  powerUpTimer = rand(8, 14);
+function spawnPowerUp(PowerUpClass) {
+  const margin = 30;
+  return new PowerUpClass(rand(margin, W - margin), rand(margin, H - margin));
 }
 
-function updatePowerUp(dt) {
+function collectPowerUp(powerUp, activate) {
+  if (dist(ship, powerUp) < ship.radius + powerUp.radius) {
+    activate();
+    return true;
+  }
+  return false;
+}
+
+function resetSpeedPowerUp() {
+  speedPowerUp = null;
+  speedPowerUpTimer = rand(8, 14);
+}
+
+function updateSpeedPowerUp(dt) {
   if (speedPowerUp) {
-    if (dist(ship, speedPowerUp) < ship.radius + speedPowerUp.radius) {
-      ship.speedBoost = 5;
-      resetPowerUp();
-    }
+    if (collectPowerUp(speedPowerUp, () => { ship.speedBoost = 5; }))
+      resetSpeedPowerUp();
     return;
   }
 
-  powerUpTimer -= dt;
-  if (powerUpTimer <= 0) {
-    const margin = 30;
-    speedPowerUp = new SpeedPowerUp(rand(margin, W - margin), rand(margin, H - margin));
+  speedPowerUpTimer -= dt;
+  if (speedPowerUpTimer <= 0) speedPowerUp = spawnPowerUp(SpeedPowerUp);
+}
+
+function resetTripleShotPowerUp() {
+  tripleShotPowerUp = null;
+  tripleShotPowerUpTimer = rand(8, 14);
+}
+
+function updateTripleShotPowerUp(dt) {
+  if (tripleShotPowerUp) {
+    if (collectPowerUp(tripleShotPowerUp, () => { ship.tripleShot = 5; }))
+      resetTripleShotPowerUp();
+    return;
   }
+
+  tripleShotPowerUpTimer -= dt;
+  if (tripleShotPowerUpTimer <= 0)
+    tripleShotPowerUp = spawnPowerUp(TripleShotPowerUp);
 }
 
 function resetShootingStar() {
@@ -364,7 +408,8 @@ function initGame() {
   lives  = 3;
   level  = 1;
   state  = 'playing';
-  resetPowerUp();
+  resetSpeedPowerUp();
+  resetTripleShotPowerUp();
   resetShootingStar();
   spawnAsteroids(4);
 }
@@ -374,7 +419,8 @@ function nextLevel() {
   bullets   = [];
   particles = [];
   ship.reset();
-  resetPowerUp();
+  resetSpeedPowerUp();
+  resetTripleShotPowerUp();
   spawnAsteroids(3 + level);
 }
 
@@ -386,7 +432,9 @@ function killShip() {
   explode(ship.x, ship.y, 14);
   ship.dead = true;
   ship.speedBoost = 0;
-  resetPowerUp();
+  ship.tripleShot = 0;
+  resetSpeedPowerUp();
+  resetTripleShotPowerUp();
   lives--;
   if (lives <= 0) {
     state = 'gameover';
@@ -420,7 +468,8 @@ function update(dt) {
   }
 
   ship.update(dt);
-  updatePowerUp(dt);
+  updateSpeedPowerUp(dt);
+  updateTripleShotPowerUp(dt);
   updateShootingStar(dt);
   bullets.forEach(b => b.update(dt));
   asteroids.forEach(a => a.update(dt));
@@ -495,6 +544,12 @@ function drawHUD() {
     ctx.textAlign = 'left';
     ctx.fillText(`VELOCIDAD x2  ${ship.speedBoost.toFixed(1)}s`, 14, 50);
   }
+
+  if (ship.tripleShot > 0) {
+    ctx.fillStyle = '#ffd166';
+    ctx.textAlign = 'left';
+    ctx.fillText(`TRIPLE DISPARO  ${ship.tripleShot.toFixed(1)}s`, 14, 74);
+  }
 }
 
 function drawOverlay(title, sub) {
@@ -514,6 +569,7 @@ function draw() {
   particles.forEach(p => p.draw());
   asteroids.forEach(a => a.draw());
   if (speedPowerUp) speedPowerUp.draw();
+  if (tripleShotPowerUp) tripleShotPowerUp.draw();
   bullets.forEach(b => b.draw());
   ship.draw();
 
