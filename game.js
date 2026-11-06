@@ -218,6 +218,22 @@ class Enemy {
   }
 }
 
+// ── Apariencias de la nave ────────────────────────────────────────────────────
+const SHIP_SKINS = [
+  { name: 'CLASICA', color: '#fff',     hull: [[20, 0], [-12, -9], [-7, 0], [-12, 9]] },
+  { name: 'FLECHA',  color: '#00e5ff', hull: [[20, 0], [-2, -8], [-14, -5], [-14, 5], [-2, 8]] },
+  { name: 'CAZA',    color: '#ffb703', hull: [[20, 0], [4, -6], [-4, -12], [-10, -4], [-10, 4], [-4, 12], [4, 6]] },
+  { name: 'ROMBO',   color: '#7cff6b', hull: [[20, 0], [4, -10], [-12, 0], [4, 10]] },
+];
+let skinIndex = 0;
+
+function traceHull(points) {
+  ctx.beginPath();
+  ctx.moveTo(points[0][0], points[0][1]);
+  for (let i = 1; i < points.length; i++) ctx.lineTo(points[i][0], points[i][1]);
+  ctx.closePath();
+}
+
 // ── Ship ──────────────────────────────────────────────────────────────────────
 class Ship {
   constructor() { this.reset(); }
@@ -281,25 +297,21 @@ class Ship {
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.rotate(this.angle);
-    ctx.strokeStyle = '#fff';
+    const skin = SHIP_SKINS[skinIndex];
+    ctx.strokeStyle = skin.color;
     ctx.lineWidth   = 1.5;
     ctx.lineJoin    = 'round';
 
-    // Silueta clásica: triángulo con muesca trasera
-    ctx.beginPath();
-    ctx.moveTo( 20,  0);   // nariz
-    ctx.lineTo(-12, -9);   // ala izquierda
-    ctx.lineTo( -7,  0);   // muesca trasera
-    ctx.lineTo(-12,  9);   // ala derecha
-    ctx.closePath();
+    traceHull(skin.hull);
     ctx.stroke();
 
     // Llama del propulsor
     if (this.thrusting && Math.random() > 0.35) {
+      const tailX = Math.min(...skin.hull.map(p => p[0])) + 2;
       ctx.beginPath();
-      ctx.moveTo(-8, -4);
-      ctx.lineTo(-8 - rand(6, 14), 0);
-      ctx.lineTo(-8,  4);
+      ctx.moveTo(tailX, -4);
+      ctx.lineTo(tailX - rand(6, 14), 0);
+      ctx.lineTo(tailX,  4);
       ctx.strokeStyle = 'rgba(255, 130, 0, 0.85)';
       ctx.stroke();
     }
@@ -537,6 +549,8 @@ function killShip() {
 
 // ── Update ────────────────────────────────────────────────────────────────────
 function update(dt) {
+  if (pressed('KeyC')) skinIndex = (skinIndex + 1) % SHIP_SKINS.length;
+
   if (state === 'gameover') {
     if (pressed('Space')) initGame();
     particles.forEach(p => p.update(dt));
@@ -634,15 +648,11 @@ function drawLifeIcon(x, y) {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(-Math.PI / 2);
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth   = 1.2;
+  ctx.scale(0.45, 0.45);
+  ctx.strokeStyle = SHIP_SKINS[skinIndex].color;
+  ctx.lineWidth   = 2.6;
   ctx.lineJoin    = 'round';
-  ctx.beginPath();
-  ctx.moveTo( 9,  0);
-  ctx.lineTo(-6, -5);
-  ctx.lineTo(-3,  0);
-  ctx.lineTo(-6,  5);
-  ctx.closePath();
+  traceHull(SHIP_SKINS[skinIndex].hull);
   ctx.stroke();
   ctx.restore();
 }
@@ -673,6 +683,10 @@ function drawHUD() {
     ctx.textAlign = 'left';
     ctx.fillText(`ESCUDO  ${ship.shield.toFixed(1)}s`, 14, statusY);
   }
+
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.textAlign = 'left';
+  ctx.fillText(`NAVE ${SHIP_SKINS[skinIndex].name}  [C]`, 14, H - 14);
 }
 
 function drawOverlay(title, sub) {
