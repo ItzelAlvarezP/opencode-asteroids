@@ -1,5 +1,11 @@
+name: OpenCode
+
+on:
+  workflow_dispatch:
+  
 jobs: 
   opencode:
+    runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
