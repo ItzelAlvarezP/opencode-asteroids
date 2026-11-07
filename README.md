@@ -53,6 +53,8 @@ La **estrella fugaz** es un asteroide especial más rápido que lo normal, con u
 | Estrella fugaz | 100 |
 | OVNI      | 150    |
 
+La nave **Morada** es el doble de grande y obtiene el doble de puntos por cada destrucción.
+
 ## Características
 
 - 3 vidas con invencibilidad temporal al reaparecer (parpadeo)
@@ -60,4 +62,4 @@ La **estrella fugaz** es un asteroide especial más rápido que lo normal, con u
 - Power-ups de velocidad, escudo y triple disparo temporales
 - OVNI enemigo que dispara proyectiles apuntando a la nave
 - Partículas de explosión al destruir asteroides
-- 4 apariencias de nave intercambiables con `C`
+- 5 apariencias de nave intercambiables con `C`
