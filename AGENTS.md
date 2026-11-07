@@ -12,6 +12,10 @@ npx serve .
 
 `npx` is only used for serving; the project itself has zero dependencies.
 
+## Issues
+
+To create or review GitHub issues for this repo, load the `create-issue` skill first — it formats the issue, adds labels, and keeps the user's original text verbatim plus agent-supplied code context.
+
 ## Layout / wiring
 
 - `index.html` — canvas element, inline CSS, loads `game.js` at end of `<body>`.
