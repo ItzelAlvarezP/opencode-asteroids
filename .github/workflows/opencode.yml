@@ -2,25 +2,34 @@ name: OpenCode
 
 on:
   workflow_dispatch:
-  
-jobs: 
+
+jobs:
   opencode:
     runs-on: ubuntu-latest
+
     permissions:
       id-token: write
       contents: read
 
     steps:
-    - name: Sign in to OpenCode
-      env:
-        AUDIENCE: https://opencode.ai/console
-      run: |
-        oidc=$(curl -sSf --oauth2-bearer "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-          "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=$AUDIENCE" | jq -r .value)
-        token=$(curl -sSf https://opencode.ai/console/auth/oauth/token \
-          -d grant_type=urn:ietf:params:oauth:grant-type:token-exchange \
-          -d subject_token_type=urn:ietf:params:oauth:token-type:jwt \
-          -d client_id=sk_11494503-0ffc-4543-9d58-2c0630e13b5c \
-          -d subject_token="$oidc" | jq -r .access_token)
-        echo "::add-mask::$token"
-        echo "OPENCODE_API_KEY=$token" >> "$GITHUB_ENV"
+      - name: Sign in to OpenCode
+        env:
+          AUDIENCE: https://opencode.ai/console
+        run: |
+          set -euo pipefail
+
+          oidc=$(curl -sSf \
+            --oauth2-bearer "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=$AUDIENCE" \
+            | jq -er '.value')
+
+          token=$(curl -sSf \
+            https://opencode.ai/console/auth/oauth/token \
+            -d grant_type=urn:ietf:params:oauth:grant-type:token-exchange \
+            -d subject_token_type=urn:ietf:params:oauth:token-type:jwt \
+            -d client_id=sk_11494503-0ffc-4543-9d58-2c0630e13b5c \
+            --data-urlencode subject_token="$oidc" \
+            | jq -er '.access_token')
+
+          echo "::add-mask::$token"
+          echo "OPENCODE_API_KEY=$token" >> "$GITHUB_ENV"
