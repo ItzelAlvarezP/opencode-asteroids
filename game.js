@@ -76,6 +76,7 @@ const RADII  = [0, 16, 30, 50];   // por tamaño 1, 2, 3
 const SPEEDS = [0, 85, 55, 32];   // velocidad base por tamaño
 const POINTS = [0, 100, 50, 20];  // puntos por tamaño
 const ENEMY_POINTS = 150;         // puntos por destruir un OVNI
+const SHIP_RADIUS = 12;           // radio base de la nave
 const SHIELD_RADIUS   = 22;       // radio del anillo y de la hitbox del escudo
 const SHIELD_DURATION = 6;        // segundos de protección
 const TRIPLE_SHOT_DURATION = 5;   // segundos de triple disparo
@@ -225,8 +226,15 @@ const SHIP_SKINS = [
   { name: 'FLECHA',  color: '#00e5ff', hull: [[20, 0], [-2, -8], [-14, -5], [-14, 5], [-2, 8]] },
   { name: 'CAZA',    color: '#ffb703', hull: [[20, 0], [4, -6], [-4, -12], [-10, -4], [-10, 4], [-4, 12], [4, 6]] },
   { name: 'ROMBO',   color: '#7cff6b', hull: [[20, 0], [4, -10], [-12, 0], [4, 10]] },
+  { name: 'MORADA',  color: '#b026ff', hull: [[20, 0], [-12, -9], [-7, 0], [-12, 9]], scale: 2, multiplier: 2 },
 ];
 let skinIndex = 0;
+
+const skinScale = () => SHIP_SKINS[skinIndex].scale || 1;
+
+function addScore(base) {
+  score += base * (SHIP_SKINS[skinIndex].multiplier || 1);
+}
 
 function traceHull(points) {
   ctx.beginPath();
@@ -245,7 +253,7 @@ class Ship {
     this.angle  = -Math.PI / 2;
     this.vx     = 0;
     this.vy     = 0;
-    this.radius = 12;
+    this.radius = SHIP_RADIUS * skinScale();
     this.thrusting     = false;
     this.invincible    = 3;
     this.shootCooldown = 0;
@@ -286,7 +294,7 @@ class Ship {
   tryShoot() {
     if (this.shootCooldown > 0 || this.dead) return [];
     this.shootCooldown = 0.2;
-    const NOSE = 21;
+    const NOSE = 21 * skinScale();
     const ox = this.x + Math.cos(this.angle) * NOSE;
     const oy = this.y + Math.sin(this.angle) * NOSE;
     if (this.tripleShot <= 0) return [new Bullet(ox, oy, this.angle)];
@@ -307,6 +315,8 @@ class Ship {
     ctx.translate(this.x, this.y);
     ctx.rotate(this.angle);
     const skin = SHIP_SKINS[skinIndex];
+    const scale = skinScale();
+    ctx.scale(scale, scale);
     ctx.strokeStyle = skin.color;
     ctx.lineWidth   = 1.5;
     ctx.lineJoin    = 'round';
@@ -571,7 +581,10 @@ function killShip() {
 
 // ── Update ────────────────────────────────────────────────────────────────────
 function update(dt) {
-  if (pressed('KeyC')) skinIndex = (skinIndex + 1) % SHIP_SKINS.length;
+  if (pressed('KeyC')) {
+    skinIndex = (skinIndex + 1) % SHIP_SKINS.length;
+    ship.radius = SHIP_RADIUS * skinScale();
+  }
 
   if (state === 'gameover') {
     if (pressed('Space')) initGame();
@@ -614,7 +627,7 @@ function update(dt) {
       if (!a.dead && !b.dead && dist(b, a) < a.radius) {
         b.dead = true;
         a.dead = true;
-        score += POINTS[a.size];
+        addScore(POINTS[a.size]);
         explode(a.x, a.y, a.size * 5);
         newAsteroids.push(...a.split());
       }
@@ -629,7 +642,7 @@ function update(dt) {
       if (!e.dead && !b.dead && dist(b, e) < e.radius) {
         b.dead = true;
         e.dead = true;
-        score += ENEMY_POINTS;
+        addScore(ENEMY_POINTS);
         explode(e.x, e.y, 10);
       }
     }
@@ -711,6 +724,14 @@ function drawHUD() {
     ctx.fillStyle = '#ffd166';
     ctx.textAlign = 'left';
     ctx.fillText(`TRIPLE DISPARO  ${ship.tripleShot.toFixed(1)}s`, 14, statusY);
+    statusY += 24;
+  }
+
+  const multiplier = SHIP_SKINS[skinIndex].multiplier || 1;
+  if (multiplier > 1) {
+    ctx.fillStyle = SHIP_SKINS[skinIndex].color;
+    ctx.textAlign = 'left';
+    ctx.fillText(`PUNTOS x${multiplier}`, 14, statusY);
   }
 
   ctx.fillStyle = 'rgba(255,255,255,0.5)';
